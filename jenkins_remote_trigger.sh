@@ -14,10 +14,12 @@ function error() {
     echo -e -n "\n"
 }
 function info() {
-    prompt="$1"
-    echo -e -n "\033[1;36m$prompt"
-    echo -e -n '\033[0m'
-    echo -e -n "\n"
+    if [ $QUIET -eq 0 ]; then
+        prompt="$1"
+        echo -e -n "\033[1;36m$prompt"
+        echo -e -n '\033[0m'
+        echo -e -n "\n"
+    fi
 }
 # *************************************************************
 
@@ -96,11 +98,11 @@ done
 TIMEOUT=${TIMEOUT:-30}
 QUIET=${QUIET:-0}
 
-# Test if job exists
+info "Searching for job $JOBNAME."
 DESCRIPTION_URL="${HOST}/job/${JOBNAME}/description"
-curl --retry 20 --retry-connrefused --retry-delay 10 --retry-max-time 60 --silent --fail "${DESCRIPTION_URL}"
+curl --retry 20 --retry-connrefused --retry-delay 10 --retry-max-time 60 --silent --fail "${DESCRIPTION_URL}" >/dev/null 2>&1
 if [[ "$?" != "0" ]]; then
-    error "Job ${HOST}/job/${JOBNAME} does not exist"
+    error "Job ${JOBNAME} does not exist"
     exit 1
 fi
 
@@ -110,9 +112,7 @@ else
     TRIGGERURL="${HOST}/job/${JOBNAME}/buildWithParameters?${JOBPARAM}"
 fi
 
-if [ $QUIET -eq 0 ];then
-    info "Making request to trigger $JOBNAME job."
-fi
+info "Making request to trigger a $JOBNAME build."
 
 TMP=`curl --retry 5 --retry-connrefused --retry-delay 10 --retry-max-time 30 --silent --dump-header - --request POST "$TRIGGERURL"`
 QID=`echo "$TMP" | grep Location | cut -d "/" -f 6`
@@ -123,9 +123,7 @@ sleep 1
 
 while curl --verbose $QUEUE_URL 2>&1 | egrep -q "BlockedItem|WaitingItem";
 do
-    if [ $QUIET -eq 0 ];then
-        info "Waiting for queued job to start.."
-    fi
+    info "Waiting for queued build to start.."
     sleep 5
 done
 
@@ -135,14 +133,14 @@ JOBURL=$(curl -s "$QUEUE_URL" | jq --raw-output '.executable.url')
 if [ -z "$JOBID" ];
 then
     if [ $QUIET -eq 0 ];then
-        error "Error creating job."
+        error "Error creating build."
     fi
     exit 1
 fi
 
 if [ $QUIET -eq 0 ];then
     success ""
-    success "Jenkins job $JOBID created, waiting to complete.."
+    success "Jenkins build $JOBID created, waiting to complete.."
     success ""
 fi
 
@@ -157,9 +155,7 @@ JOBURLJSON="$JOBURL"api/json?pretty=true
 BUILDING=$(curl -s "$JOBURLJSON" |jq --raw-output '.building')
 while $BUILDING; do
     BUILDING=$(curl -s "$JOBURLJSON" |jq --raw-output '.building')
-    if [ $QUIET -eq 0 ];then
-        info "Building.."
-    fi
+    info "Building.."
     sleep 10
 done
 
@@ -171,7 +167,7 @@ if [ $QUIET -eq 0 ];then
         NOTIFY=success
     fi
     $NOTIFY ""
-    $NOTIFY "Job $JOBID finished with status: $JOBSTATUS"
+    $NOTIFY "Build $JOBID finished with status: $JOBSTATUS"
     $NOTIFY ""
 fi
 
