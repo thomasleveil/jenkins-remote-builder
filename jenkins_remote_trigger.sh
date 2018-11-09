@@ -106,14 +106,14 @@ if [ $QUIET -eq 0 ];then
     info "Making request to trigger $JOBNAME job."
 fi
 
-TMP=`curl -s -D - -X POST "$TRIGGERURL"`
+TMP=`curl --retry 5 --retry-connrefused --retry-delay 10 --retry-max-time 30 --silent --dump-header - --request POST "$TRIGGERURL"`
 QID=`echo "$TMP" | grep Location | cut -d "/" -f 6`
 
 QUEUE_URL="${HOST}/queue/item/${QID}/api/json?pretty=true"
 
 sleep 1
 
-while curl -v $QUEUE_URL 2>&1 | egrep -q "BlockedItem|WaitingItem";
+while curl --verbose $QUEUE_URL 2>&1 | egrep -q "BlockedItem|WaitingItem";
 do
     if [ $QUIET -eq 0 ];then
         info "Waiting for queued job to start.."
