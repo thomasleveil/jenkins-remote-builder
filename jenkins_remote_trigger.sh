@@ -87,7 +87,7 @@ do
         usage
         ;;
         *)
-        echoerr "Unknown argument: $1"
+        error "Unknown argument: $1"
         usage
         ;;
     esac
@@ -109,7 +109,7 @@ QUEUE_URL="${HOST}/queue/item/${QID}/api/json?pretty=true"
 
 sleep 1
 
-while curl -v $QUEUE_URL 2>&1 | egrep -q "BlockedItem|WaitingItem";   
+while curl -v $QUEUE_URL 2>&1 | egrep -q "BlockedItem|WaitingItem";
 do
     if [ $QUIET -eq 0 ];then
         info "Waiting for queued job to start.."
