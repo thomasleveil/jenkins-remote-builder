@@ -9,4 +9,6 @@ services:
     image: this
     depends_on:
       - jenkins
-    command: /jenkins_remote_trigger.sh --host=http://jenkins:8080/ --jobname=SeedJob --timeout=2
+    volumes:
+      - ./utils/:/utils/
+    command: /utils/wait-for-it.sh --host=jenkins --port=8080 --strict --timeout=30 -- /jenkins_remote_trigger.sh --host=http://jenkins:8080/ --jobname=SeedJob --timeout=2
