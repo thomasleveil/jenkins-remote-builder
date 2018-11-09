@@ -1,0 +1,12 @@
+# docker build -t this
+# docker-compose -f docker-compose.test.yml up --exit-code-from sut
+version: "3.6"
+services:
+  jenkins:
+    image: tomdesinto/jenkins-dsl-ready
+
+  sut:
+    image: this
+    depends_on:
+      - jenkins
+    command: /jenkins_remote_trigger.sh --host=http://jenkins:8080/ --jobname=SeedJob --timeout=2
