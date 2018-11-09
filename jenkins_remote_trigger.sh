@@ -96,6 +96,14 @@ done
 TIMEOUT=${TIMEOUT:-30}
 QUIET=${QUIET:-0}
 
+# Test if job exists
+DESCRIPTION_URL="${HOST}/job/${JOBNAME}/description"
+curl --retry 5 --retry-connrefused --retry-delay 10 --retry-max-time 30 --silent --fail "${DESCRIPTION_URL}"
+if [[ "$?" != "0" ]]; then
+    error "Job ${HOST}/job/${JOBNAME} does not exist"
+    exit 1
+fi
+
 if [[ "${JOBPARAM}" == "" ]]; then
     TRIGGERURL="${HOST}/job/${JOBNAME}/build"
 else
