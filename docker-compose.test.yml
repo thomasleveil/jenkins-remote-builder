@@ -11,4 +11,6 @@ services:
       - jenkins
     volumes:
       - ./utils/:/utils/
+    links:
+      - jenkins
     command: /utils/wait-for-it.sh --host=jenkins --port=8080 --strict --timeout=30 -- /jenkins_remote_trigger.sh --host=http://jenkins:8080/ --jobname=SeedJob --timeout=2
