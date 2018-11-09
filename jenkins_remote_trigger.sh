@@ -96,7 +96,11 @@ done
 TIMEOUT=${TIMEOUT:-30}
 QUIET=${QUIET:-0}
 
-TRIGGERURL="${HOST}/job/${JOBNAME}/buildWithParameters?${JOBPARAM}"
+if [[ "${JOBPARAM}" == "" ]]; then
+    TRIGGERURL="${HOST}/job/${JOBNAME}/build"
+else
+    TRIGGERURL="${HOST}/job/${JOBNAME}/buildWithParameters?${JOBPARAM}"
+fi
 
 if [ $QUIET -eq 0 ];then
     info "Making request to trigger $JOBNAME job."
